@@ -9,7 +9,15 @@ const bugRoutes = require("./routes/bugRoutes");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5175",
+    "http://localhost:5176",
+    "https://bugtracker-vaishu.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
