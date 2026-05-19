@@ -8,39 +8,38 @@ const bugRoutes = require("./routes/bugRoutes");
 
 const app = express();
 
-// Middleware
-app.use(express.json());
-
-app.use(cors({
-  origin: [
-    "http://localhost:5175",
-    "http://localhost:5176",
-    "https://bugtracker-vaishu.vercel.app",
-    "https://bug-tracker-system-six.vercel.app",
-    "https://bug-tracker-system-hjakb3p7r-vaishnavi-varma-s-projects.vercel.app"
-  ],
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (
+      !origin ||
+      origin.includes("localhost") ||
+      origin.includes("vercel.app")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
-}));
+};
 
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/bugs", bugRoutes);
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Bug Tracker API Running");
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  console.log("MongoDB Connected");
-})
-.catch((err) => {
-  console.log(err);
-});
+app.use("/api/auth", authRoutes);
+app.use("/api/bugs", bugRoutes);
 
-// Server
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log(err));
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
